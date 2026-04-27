@@ -152,6 +152,7 @@ Control behavior:
 -	motor stops when the position error enters the tolerance band
 
 **Key parameters:**
+
 MAX_POSITION_SPEED_RPM = 3600
 
 KP_POSITION = 0.035
