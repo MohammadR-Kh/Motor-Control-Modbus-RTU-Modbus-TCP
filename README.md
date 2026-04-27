@@ -126,3 +126,189 @@ The controller uses:
 -	**Dynamic PWM adjustment based on load**
 
 The PID controller continuously adjusts PWM duty cycle to maintain a constant motor speed.
+
+### PID Parameters
+
+| Parameter | Value |
+|----------|-------|
+| Kp       | 1.8   |
+| Ki       | 1.4   |
+| Kd       | 0.0   |
+
+---
+### Position Mode
+In Position Mode the motor moves to a **target angular position**.
+
+The controller implements a simple motion profile:
+
+-	acceleration when far from target
+-	automatic deceleration near the target
+-	stop inside a defined tolerance window
+  
+Control behavior:
+
+-	maximum speed depends on distance to target
+-	RPM is gradually reduced as the motor approaches the target
+-	motor stops when the position error enters the tolerance band
+
+**Key parameters:**
+MAX_POSITION_SPEED_RPM = 3600
+
+KP_POSITION = 0.035
+
+POSITION_TOLERANCE_COUNTS = 10
+
+---
+### Register Map
+The controller can be operated through the following Modbus registers:
+
+| Register | Name | Description |
+|----------|-------|-------------|
+| 0        | TARGET_RPM  | Desired motor speed|
+| 1        | TARGET_POSITION  | Target position (degree) |
+| 2        | MODE  | Control mode (Speed / Position) |
+| 3        | ACTUAL_RPM  | Measured motor speed |
+| 4        | ACTUAL_POSITION   | Current motor position |
+| 5        | PWM_OUTPUT   | Current PWM duty cycle |
+
+---
+### Control Parameters
+MAX_DUTY = 799
+
+ENCODER_CPR = 1600
+
+ACCEL_RPM_PER_SEC = 4000
+
+DECEL_RPM_PER_SEC = 8000
+
+CONTROL_HZ = 500
+
+---
+### Real-Time Architecture
+The firmware is built on **FreeRTOS** with separate tasks for different system components.
+
+Example tasks include:
+
+-	Motor Control Task
+-	Modbus RTU Task
+-	Modbus TCP Task
+-	Monitor Task
+
+CPU statistics show:
+
+-	**Idle Task: ~93%**
+-	**Application Load: ~7%**
+
+This indicates the system has significant processing headroom.
+
+---
+### Safety Features
+The system includes several safety mechanisms:
+
+**Independent Watchdog (IWDG)**
+
+The watchdog automatically resets the system if the firmware becomes unresponsive.
+
+**Stack Overflow Detection**
+
+FreeRTOS stack overflow protection is enabled.
+
+If an overflow occurs, the system reports the faulty task through UART.
+
+---
+## Testing
+### Speed Control – Step Response
+The controller was tested using step changes in target RPM.
+
+Results show:
+
+-	low overshoot
+-	stable settling behavior
+-	accurate speed tracking
+<p align="center">
+  <img src="images/1800_RPM_VAL.png">
+</p>
+
+![Forward_Test](images/1800_RPM.png)
+![Forward_Test](images/-1800_RPM.png)
+
+---
+### Position Control
+Position mode was tested with various target angles.
+
+The motor successfully reaches the target and stops smoothly within the tolerance band.
+
+![Forward_Test](images/1900_Position.png)
+![Forward_Test](images/-1900_Position.png)
+
+---
+### Load Disturbance Test
+Additional tests were performed by applying mechanical load to the motor shaft.
+
+Results show:
+
+-	RPM remains stable
+-	PWM output adjusts dynamically to compensate for load changes
+
+![Forward_Test](images/PWM_PID.png)
+![Forward_Test](images/RPM_PID.png)
+
+---
+### Modbus RTU Communication
+Modbus RTU frames were verified using a logic analyzer.
+
+The captured frames confirm correct implementation of:
+
+-	**F03**
+
+![Forward_Test](images/TX_logic_analyzer.png)
+
+<p align="center">
+  <img src="images/RX_logic_analyzer.png">
+</p>
+ 
+-	**F06**
+
+<p align="center">
+  <img src="images/TX_F06.png">
+</p>
+
+![Forward_Test](images/RX_F06.png)
+  
+-	**F10**
+
+<p align="center">
+  <img src="images/TX_F10.png">
+</p>
+
+![Forward_Test](images/RX_F10.png)
+
+---
+### System Performance
+Measured results:
+
+-	CPU Load: ~7%
+-	Idle Time: ~93%
+-	All task stacks within safe limits.
+
+This confirms efficient use of MCU resources.
+
+<p align="center">
+  <img src="images/cpu_load.png">
+</p>
+
+---
+## Future Improvements
+Possible future extensions include:
+
+-	acceleration profile (trapezoidal motion)
+-	additional Modbus function codes
+-	closed-loop current control
+-	web configuration interface
+-	industrial PCB design
+
+---
+## License
+This project is open source and available for educational and research purposes.
+
+---
