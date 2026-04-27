@@ -1,0 +1,20 @@
+# Build folders
+Debug/
+Release/
+build/
+
+# Object files
+
+
+# CubeIDE metadata
+.settings/
+.metadata/
+mx_tmp/
+
+# Backup files
+*~
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
