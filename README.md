@@ -116,3 +116,13 @@ A temporary **monitor task** is implemented for debugging and system monitoring.
 DMA is not used here since it is only intended for development.
 
 ---
+## Motor Control
+### Speed Mode
+In Speed Mode the user sets a **target RPM** through Modbus registers.
+
+The controller uses:
+-	**Soft start acceleration**
+-	**PID closed-loop control**
+-	**Dynamic PWM adjustment based on load**
+
+The PID controller continuously adjusts PWM duty cycle to maintain a constant motor speed.
